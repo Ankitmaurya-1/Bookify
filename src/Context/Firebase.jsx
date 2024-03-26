@@ -8,6 +8,8 @@ import {
   signInWithPopup,
   onAuthStateChanged,
 } from "firebase/auth";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 const FirebaseContext = createContext(null);
 
@@ -24,6 +26,8 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const firebaseAuth = getAuth(firebaseApp);
+const firestore = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -52,6 +56,27 @@ export const FirebaseProvider = (props) => {
   };
 
   const isLoggedIn = user ? true : false;
+
+  console.log(user);
+  const handleCreateNewListing = async (name, isbn, price, coverPic) => {
+    const imageRef = ref(
+      storage,
+      `uploads/images/${Date.now()}-${coverPic.name}`
+    );
+
+    const uploadResult = await uploadBytes(imageRef, coverPic);
+    return await addDoc(collection(firestore, "books"), {
+      name,
+      isbn,
+      price,
+      imageUrl: uploadResult.ref.fullPath,
+      userId: user.uid,
+      userEmail: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+    });
+  };
+
   return (
     <FirebaseContext.Provider
       value={{
@@ -59,6 +84,7 @@ export const FirebaseProvider = (props) => {
         signinWithGoogle,
         signupWithEmailandPassword,
         signinWithEmailandPassword,
+        handleCreateNewListing,
       }}
     >
       {props.children}
