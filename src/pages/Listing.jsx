@@ -13,6 +13,7 @@ function ListingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     await firebase.handleCreateNewListing(name, isBnNumber, price, coverPic);
+    alert("List Sucessfully added");
   };
 
   return (
